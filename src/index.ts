@@ -1,15 +1,16 @@
-//TODO: delete old cached items
+//TODO: implement ratelimiting
+//TODO: delete items that have been previously cached after a certain amount of time
 
 import dotenv from 'dotenv'; dotenv.config();
+import fetch from 'node-fetch'
 import { BinaryToTextEncoding, createHash } from 'crypto';
 import express, { Response, Request, json } from 'express'
-import axios from 'axios'
-import { getIdFromUsername } from 'noblox.js'
+import noblox from 'noblox.js'
 
 const PORT = process.env.PORT || 443
 const QUESTION_INDEX = process.env.QUESTION_INDEX || 0
 const PAYHIP_API_KEY = process.env.PAYHIP_API_KEY
-const PARCEL_SECRET_KEY = process.env.PARCEL_SECRET_KEY
+const PARCEL_SECRET_KEY = process.env.PARCEL_SECRET_KEY || ""
 const PARCEL_PUBLIC_API_BASE_URL = "https://papi.parcelroblox.com/"
 const PARCEL_PRIVATE_API_BASE_URL = "https://api.parcelroblox.com/"
 
@@ -23,21 +24,20 @@ function generateHash(string: string, algorithm?: string, encoding?: BinaryToTex
 
 function getUserId(username: string): Promise<number | undefined> {
     if (cache.has(username)) return Promise.resolve(cache.get(username) as number)
-    return new Promise(resolve => getIdFromUsername(username).then(id => { cache.set(username, id); resolve(id) }).catch(() => resolve(undefined)))
+    return new Promise(resolve => noblox.getIdFromUsername(username).then(id => { cache.set(username, id); resolve(id) }).catch(() => resolve(undefined)))
 }
 
 function getProducts(): Promise<Array<any> | undefined> {
-    return new Promise(resolve => axios.post(PARCEL_PRIVATE_API_BASE_URL + `api/hub/getproducts?type=all`, {
-        data: {},
+    return new Promise(resolve => fetch(PARCEL_PRIVATE_API_BASE_URL + `api/hub/getproducts?type=all`, {
+        method: "GET",
         headers: {
             "hub-secret-key": PARCEL_SECRET_KEY,
             "Content-Type": "application/json",
             "Accept-Encoding": "*",
         },
-        responseType: "json"
     }).then(apiResponse => {
         if (apiResponse.status !== 200) return resolve(undefined)
-        resolve(apiResponse.data.details.products)
+        apiResponse.json().then(body => resolve((body as any).details.products as Array<any>))
     }).catch(() => resolve(undefined)))
 }
 
@@ -45,34 +45,36 @@ app.use(json())
 
 app.post("/webhook", async function (request: Request, response: Response) {
     const requestSignature = request.body.signature
-    if (signature && (!requestSignature || signature !== requestSignature)) { console.log(`Provided signature '${requestSignature || "NULL"}' does not match the known API signature.`); return response.send(403).end() }
+    if (signature && (!requestSignature || signature !== requestSignature)) { console.log(`Provided signature '${requestSignature || "NULL"}' does not match the known API signature.`); return response.sendStatus(403).end() }
     const questions = request.body.checkout_questions
-    if (!questions) { console.log("No checkout questions found in the request body."); return response.send(200).end() }
-    const username = questions[QUESTION_INDEX]
-    if (!username) { console.log(`No username was found at array index ${QUESTION_INDEX}.`); return response.send(200).end() }
+    if (!questions) { console.log("No checkout questions found in the request body."); return response.sendStatus(200).end() }
+    const question = questions[QUESTION_INDEX]
+    if (!question) { console.log(`No username was found at array index ${QUESTION_INDEX}.`); return response.sendStatus(200).end() }
+    const username = question.response
     const userId = await getUserId(username)
-    if (!userId) { console.log(`No UserID associated with the name ${username} could be found.`); return response.send(200).end() }
+    if (!userId) { console.log(`No UserID associated with the name ${username} could be found.`); return response.sendStatus(200).end() }
     const products = await getProducts()
-    if (!products) { console.log(`Error occured whilst fetching products (check your parcel secret key!). `); return response.send(200).end() }
+    if (!products) { console.log(`Error occured whilst fetching products (check your parcel secret key!). `); return response.sendStatus(200).end() }
     for (const item of request.body.items) {
         let productId
-        for (const product of products) if (item.name === product.name) { productId = product.productID; break };
-        if (!productId) { console.log(`No Product ID with the name ${item.name} could be found on Parcel.`); return response.send(200).end() }
-        axios.post(PARCEL_PUBLIC_API_BASE_URL + `whitelist/add`, {
-            data: {
+        for (const product of products) if (item.product_name === product.name) { productId = product.productID; break };
+        if (!productId) { console.log(`No Product ID with the name ${item.product_name} could be found on Parcel.`); return response.sendStatus(200).end() }
+        fetch(PARCEL_PUBLIC_API_BASE_URL + `whitelist/add`, {
+            method: "POST",
+            body: JSON.stringify({
                 robloxID: String(userId),
                 productID: productId
-            },
+            }),
             headers: {
                 "hub-secret-key": PARCEL_SECRET_KEY,
                 "Content-Type": "application/json",
                 "Accept-Encoding": "*",
             },
-            responseType: "json"
         }).then(apiResponse => {
             if (apiResponse.status !== 200) { console.log(`Could not whitelist user (status code ${apiResponse.status}, check your parcel secret key!).`); return response.send(200).end() }
             console.log(`Successfully whitelisted user ${username} (${userId})`)
-        }).catch(() => { console.log(`Failed to post to Parcel API.`); return response.send(200).end() })
+            response.sendStatus(200).end()
+        }).catch(() => { console.log(`Failed to post to Parcel API (check your parcel secret key!).`); return response.sendStatus(200).end() })
     }
 })
 
