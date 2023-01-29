@@ -1,21 +1,20 @@
 //TODO: implement ratelimiting
-//TODO: delete items that have been previously cached after a certain amount of time
+//TODO: implement caching
 
 import dotenv from 'dotenv'; dotenv.config();
 import fetch from 'node-fetch'
-import { BinaryToTextEncoding, createHash } from 'crypto';
 import express, { Response, Request, json } from 'express'
-import noblox from 'noblox.js'
+import { BinaryToTextEncoding, createHash } from 'crypto';
 
 const PORT = process.env.PORT || 443
 const QUESTION_INDEX = process.env.QUESTION_INDEX || 0
 const PAYHIP_API_KEY = process.env.PAYHIP_API_KEY
 const PARCEL_SECRET_KEY = process.env.PARCEL_SECRET_KEY || ""
-const PARCEL_PUBLIC_API_BASE_URL = "https://papi.parcelroblox.com/"
-const PARCEL_PRIVATE_API_BASE_URL = "https://api.parcelroblox.com/"
+const PARCEL_PAYMENTS_BASE_URL = "https://payments.parcelroblox.com/"
+const PARCEL_API_BASE_URL = "https://api.parcelroblox.com/"
+const ROBLOX_API_BASE_URL = "https://api.roblox.com/"
 
 const signature = PAYHIP_API_KEY ? generateHash(PAYHIP_API_KEY, 'sha256', 'binary') : null
-const cache = new Map()
 const app = express()
 
 function generateHash(string: string, algorithm?: string, encoding?: BinaryToTextEncoding): string {
@@ -23,12 +22,23 @@ function generateHash(string: string, algorithm?: string, encoding?: BinaryToTex
 }
 
 function getUserId(username: string): Promise<number | undefined> {
-    if (cache.has(username)) return Promise.resolve(cache.get(username) as number)
-    return new Promise(resolve => noblox.getIdFromUsername(username).then(id => { cache.set(username, id); resolve(id) }).catch(() => resolve(undefined)))
+    return new Promise(resolve => fetch(ROBLOX_API_BASE_URL + `users/get-by-username?username=${username}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Accept-Encoding": "*",
+        },
+    }).then(apiResponse => {
+        if (apiResponse.status !== 200) return resolve(undefined)
+        apiResponse.json().then(body => {
+            if ((body as any).errorMessage) return resolve(undefined)
+            resolve((body as any).Id as number)
+        })
+    }).catch(() => resolve(undefined)))
 }
 
 function getProducts(): Promise<Array<any> | undefined> {
-    return new Promise(resolve => fetch(PARCEL_PRIVATE_API_BASE_URL + `api/hub/getproducts?type=all`, {
+    return new Promise(resolve => fetch(PARCEL_API_BASE_URL + `external/api/hub/getproducts?type=all`, {
         method: "GET",
         headers: {
             "hub-secret-key": PARCEL_SECRET_KEY,
@@ -57,9 +67,9 @@ app.post("/webhook", async function (request: Request, response: Response) {
     if (!products) { console.log(`Error occured whilst fetching products (check your parcel secret key!). `); return response.sendStatus(200).end() }
     for (const item of request.body.items) {
         let productId
-        for (const product of products) if (item.product_name === product.name) { productId = product.productID; break };
+        for (const product of products) if (item.product_name.toLowerCase() === product.name.toLowerCase()) { productId = product.productID; break };
         if (!productId) { console.log(`No Product ID with the name ${item.product_name} could be found on Parcel.`); return response.sendStatus(200).end() }
-        fetch(PARCEL_PUBLIC_API_BASE_URL + `whitelist/add`, {
+        fetch(PARCEL_PAYMENTS_BASE_URL + `hub/order/complete`, {
             method: "POST",
             body: JSON.stringify({
                 robloxID: String(userId),
