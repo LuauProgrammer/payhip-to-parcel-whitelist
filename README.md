@@ -8,6 +8,8 @@ A web server that automates USD payments with Parcel by using Payhip.
 First things first, lets head on over to Payhip > Settings > Advanced Settings > Checkout Questions and click 
 "Display your own questions for customers to answer during checkout". Then, create a question asking the user what their ROBLOX username is. If you already have several questions up, you will need to figure out what index the question is at. Questions indexes start at 0. So your first question would be 0, second would be 1, and so on. If the index is not 0, save the index somewhere safe as we'll need it later.
 
+This is incredibly important. Your product name on Payhip MUST be the same as the product name on Parcel. If it isn't, this will not work.
+
 ### Preparing Parcel
 
 So in order for us to whitelist our user, we'll need to get our hub secret key. To do this run this with parcel:
