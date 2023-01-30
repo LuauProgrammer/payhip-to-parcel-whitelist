@@ -39,7 +39,7 @@ function getUserId(username: string): Promise<number | undefined> {
 }
 
 function getProducts(): Promise<Array<any> | undefined> {
-    return new Promise(resolve => fetch(PARCEL_API_BASE_URL + `external/api/hub/getproducts?type=all`, {
+    return new Promise(resolve => fetch(PARCEL_API_BASE_URL + `api/hub/getproducts?type=all`, {
         method: "GET",
         headers: {
             "hub-secret-key": PARCEL_SECRET_KEY,
