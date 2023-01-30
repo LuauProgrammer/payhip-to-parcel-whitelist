@@ -57,3 +57,5 @@ In your Payhip developer tab there is a ping endpoints box. Put your domain and 
 ## How does it work?
 
 This works by using Payhips webhooks that are sent everytime a user purchases something. When the webhook is received on the server, we check the question index for the provided username. Then we query Parcel for the product ID from the provided product name on Payhip. After that if all the other checks and whatnot pass, we will whitelist the user using Parcel's API.
+
+If you're wondering why we always return status code 200, it's because Payhip will keep retrying the webhook if it doesn't return code 200.

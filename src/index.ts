@@ -9,8 +9,8 @@ import { BinaryToTextEncoding, createHash } from 'crypto';
 const PORT = process.env.PORT || 443
 const WEBHOOK_ROUTE = process.env.WEBHOOK_ROUTE || ""
 const QUESTION_INDEX = process.env.QUESTION_INDEX || 0
-const PAYHIP_API_KEY = process.env.PAYHIP_API_KEY
 const PARCEL_SECRET_KEY = process.env.PARCEL_SECRET_KEY || ""
+const PAYHIP_API_KEY = process.env.PAYHIP_API_KEY
 const PARCEL_PAYMENTS_BASE_URL = "https://payments.parcelroblox.com/"
 const PARCEL_API_BASE_URL = "https://api.parcelroblox.com/"
 const ROBLOX_API_BASE_URL = "https://api.roblox.com/"
