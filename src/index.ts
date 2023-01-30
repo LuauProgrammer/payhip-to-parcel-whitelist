@@ -7,6 +7,7 @@ import express, { Response, Request, json } from 'express'
 import { BinaryToTextEncoding, createHash } from 'crypto';
 
 const PORT = process.env.PORT || 443
+const WEBHOOK_ROUTE = process.env.WEBHOOK_ROUTE || "/"
 const QUESTION_INDEX = process.env.QUESTION_INDEX || 0
 const PAYHIP_API_KEY = process.env.PAYHIP_API_KEY
 const PARCEL_SECRET_KEY = process.env.PARCEL_SECRET_KEY || ""
@@ -53,7 +54,7 @@ function getProducts(): Promise<Array<any> | undefined> {
 
 app.use(json())
 
-app.post("/webhook", async function (request: Request, response: Response) {
+app.post(WEBHOOK_ROUTE, async function (request: Request, response: Response) {
     const requestSignature = request.body.signature
     if (signature && (!requestSignature || signature !== requestSignature)) { console.log(`Provided signature '${requestSignature || "NULL"}' does not match the known API signature.`); return response.sendStatus(403).end() }
     const questions = request.body.checkout_questions
