@@ -53,3 +53,7 @@ yarn run start
 ### Adding our server to the list of webhooks to ping
 
 In your Payhip developer tab there is a ping endpoints box. Put your domain and the route (example: https://domain.com/route/) in there and save.
+
+## How does it work?
+
+This works by using Payhips webhooks that are sent everytime a user purchases something. When the webhook is received on the server, we check the question index for the provided username. Then we query Parcel for the product ID from the provided product name on Payhip. After that if all the other checks and whatnot pass, we will whitelist the user using Parcel's API.
