@@ -7,7 +7,7 @@ import express, { Response, Request, json } from 'express'
 import { BinaryToTextEncoding, createHash } from 'crypto';
 
 const PORT = process.env.PORT || 443
-const WEBHOOK_ROUTE = process.env.WEBHOOK_ROUTE || "/"
+const WEBHOOK_ROUTE = process.env.WEBHOOK_ROUTE || ""
 const QUESTION_INDEX = process.env.QUESTION_INDEX || 0
 const PAYHIP_API_KEY = process.env.PAYHIP_API_KEY
 const PARCEL_SECRET_KEY = process.env.PARCEL_SECRET_KEY || ""
