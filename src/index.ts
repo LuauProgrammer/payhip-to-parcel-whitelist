@@ -72,7 +72,7 @@ app.post("/" + WEBHOOK_ROUTE, async function (request: Request, response: Respon
         let productId
         for (const product of products) if (item.product_name.toLowerCase() === product.name.toLowerCase()) { productId = product.productID; break };
         if (!productId) { console.log(`No Product ID with the name ${item.product_name} could be found on Parcel.`); return response.sendStatus(200).end() }
-        fetch(LOG_AND_DM_USER ? PARCEL_PAYMENTS_BASE_URL + `hub/order/complete` : PARCEL_PUBLIC_API_BASE_URL + " whitelist/add", {
+        fetch(LOG_AND_DM_USER ? PARCEL_PAYMENTS_BASE_URL + `external/hub/order/complete` : PARCEL_PUBLIC_API_BASE_URL + " whitelist/add", {
             method: "POST",
             body: JSON.stringify({
                 robloxID: String(userId),
