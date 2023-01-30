@@ -36,6 +36,7 @@ yarn add
 
 Here come's the harder part, setting up your env:
 ```
+LOG_AND_DM_USER = <boolean> (logs the purchase to your purchase channel and dms the user their product, default is false)
 WEBHOOK_ROUTE = "/webhook" (where are we listening for incoming webhooks, default is root)
 QUESTION_INDEX=<integer> (the question number that is asked at checkout to search for the customers roblox username, default is 0)
 PARCEL_SECRET_KEY=<string> (bare minimum required for this to work, you can get this by running /settings with parcel and selecting hub settings)
