@@ -54,7 +54,7 @@ function getProducts(): Promise<Array<any> | undefined> {
 
 app.use(json())
 
-app.post(WEBHOOK_ROUTE, async function (request: Request, response: Response) {
+app.post("/" + WEBHOOK_ROUTE, async function (request: Request, response: Response) {
     const requestSignature = request.body.signature
     if (signature && (!requestSignature || signature !== requestSignature)) { console.log(`Provided signature '${requestSignature || "NULL"}' does not match the known API signature.`); return response.sendStatus(403).end() }
     const questions = request.body.checkout_questions
