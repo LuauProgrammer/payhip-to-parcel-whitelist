@@ -7,9 +7,9 @@ import express, { Response, Request, json } from 'express'
 import { BinaryToTextEncoding, createHash } from 'crypto';
 
 const PORT = process.env.PORT || 443
-const WEBHOOK_ROUTE = process.env.WEBHOOK_ROUTE || ""
+const WEBHOOK_ROUTE = process.env.WEBHOOK_ROUTE || "/"
 const QUESTION_INDEX = process.env.QUESTION_INDEX || 0
-const PARCEL_SECRET_KEY = process.env.PARCEL_SECRET_KEY || ""
+const PARCEL_SECRET_KEY = process.env.PARCEL_SECRET_KEY
 const PAYHIP_API_KEY = process.env.PAYHIP_API_KEY
 const LOG_AND_DM_USER = process.env.LOG_AND_DM_USER
 const PARCEL_PAYMENTS_BASE_URL = "https://payments.parcelroblox.com/"
@@ -44,7 +44,7 @@ function getProducts(): Promise<Array<any> | undefined> {
     return new Promise(resolve => fetch(PARCEL_API_BASE_URL + `api/hub/getproducts?type=all`, {
         method: "GET",
         headers: {
-            "hub-secret-key": PARCEL_SECRET_KEY,
+            "hub-secret-key": PARCEL_SECRET_KEY!,
             "Content-Type": "application/json",
             "Accept-Encoding": "*",
         },
@@ -56,7 +56,7 @@ function getProducts(): Promise<Array<any> | undefined> {
 
 app.use(json())
 
-app.post("/" + WEBHOOK_ROUTE, async function (request: Request, response: Response) {
+app.post(WEBHOOK_ROUTE, async function (request: Request, response: Response) {
     const requestSignature = request.body.signature
     if (signature && (!requestSignature || signature !== requestSignature)) { console.log(`Provided signature '${requestSignature || "NULL"}' does not match the known API signature.`); return response.sendStatus(403).end() }
     const questions = request.body.checkout_questions
@@ -79,7 +79,7 @@ app.post("/" + WEBHOOK_ROUTE, async function (request: Request, response: Respon
                 productID: productId
             }),
             headers: {
-                "hub-secret-key": PARCEL_SECRET_KEY,
+                "hub-secret-key": PARCEL_SECRET_KEY!,
                 "Content-Type": "application/json",
                 "Accept-Encoding": "*",
             },
