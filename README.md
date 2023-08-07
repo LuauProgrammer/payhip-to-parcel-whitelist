@@ -65,4 +65,4 @@ If you're wondering why we always return status code 200, it's because Payhip wi
 
 I'm aware these docs suck like a lot. Feel free to DM me on Discord for assistance debugging, setting up, etc.
 
-ツ ayden!!#0001
+drumsanddrugs
