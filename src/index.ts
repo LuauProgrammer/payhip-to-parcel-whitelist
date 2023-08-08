@@ -93,5 +93,3 @@ app.post(WEBHOOK_ROUTE, async function (request: Request, response: Response) {
 })
 
 app.listen(PORT, () => console.log(`Listening on Port ${PORT}`))
-
-getUserId("Quintinite").then(c => console.log(c))
