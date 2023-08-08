@@ -27,7 +27,7 @@ function generateHash(string: string, algorithm?: string, encoding?: BinaryToTex
 function getUserId(username: string): Promise<number | undefined> {
     return new Promise(resolve => fetch(ROBLOX_USERS_API_BASE_URL + `/v1/usernames/users`, {
         method: "POST",
-        body: { "usernames": [username], "excludeBannedUsers": true },
+        body: JSON.stringify({ "usernames": [username], "excludeBannedUsers": true }),
         headers: {
             "Content-Type": "application/json",
             "Accept-Encoding": "*",
@@ -76,8 +76,8 @@ app.post(WEBHOOK_ROUTE, async function (request: Request, response: Response) {
         fetch(LOG_AND_DM_USER ? PARCEL_PAYMENTS_BASE_URL + `external/hub/order/complete` : PARCEL_PUBLIC_API_BASE_URL + " whitelist/add", {
             method: "POST",
             body: JSON.stringify({
-                robloxID: String(userId),
-                productID: productId
+                "robloxID": String(userId),
+                "productID": productId
             }),
             headers: {
                 "hub-secret-key": PARCEL_SECRET_KEY!,
@@ -93,3 +93,5 @@ app.post(WEBHOOK_ROUTE, async function (request: Request, response: Response) {
 })
 
 app.listen(PORT, () => console.log(`Listening on Port ${PORT}`))
+
+getUserId("Quintinite").then(c => console.log(c))
