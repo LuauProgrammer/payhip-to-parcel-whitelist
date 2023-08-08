@@ -15,7 +15,7 @@ const LOG_AND_DM_USER = process.env.LOG_AND_DM_USER
 const PARCEL_PAYMENTS_BASE_URL = "https://payments.parcelroblox.com/"
 const PARCEL_PUBLIC_API_BASE_URL = "https://papi.parcelroblox.com/"
 const PARCEL_API_BASE_URL = "https://api.parcelroblox.com/"
-const ROBLOX_API_BASE_URL = "https://api.roblox.com/"
+const ROBLOX_USERS_API_BASE_URL = "https://users.roblox.com/"
 
 const signature = PAYHIP_API_KEY ? generateHash(PAYHIP_API_KEY, 'sha256', 'binary') : null
 const app = express()
@@ -25,8 +25,9 @@ function generateHash(string: string, algorithm?: string, encoding?: BinaryToTex
 }
 
 function getUserId(username: string): Promise<number | undefined> {
-    return new Promise(resolve => fetch(ROBLOX_API_BASE_URL + `users/get-by-username?username=${username}`, {
-        method: "GET",
+    return new Promise(resolve => fetch(ROBLOX_USERS_API_BASE_URL + `/v1/usernames/users`, {
+        method: "POST",
+        body: { "usernames": [username], "excludeBannedUsers": true },
         headers: {
             "Content-Type": "application/json",
             "Accept-Encoding": "*",
@@ -34,8 +35,8 @@ function getUserId(username: string): Promise<number | undefined> {
     }).then(apiResponse => {
         if (apiResponse.status !== 200) return resolve(undefined)
         apiResponse.json().then(body => {
-            if ((body as any).errorMessage) return resolve(undefined)
-            resolve((body as any).Id as number)
+            if ((body as any).data.length === 0) return resolve(undefined)
+            resolve((body as any).data[0].id as number)
         })
     }).catch(() => resolve(undefined)))
 }
