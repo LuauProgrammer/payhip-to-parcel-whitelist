@@ -58,6 +58,7 @@ function getProducts(): Promise<Array<any> | undefined> {
 app.use(json())
 
 app.post(WEBHOOK_ROUTE, async function (request: Request, response: Response) {
+    if (request.body.type !== "paid") { console.log(`Expected request type to be paid, got ${request.body.type}`); return response.sendStatus(200).end() }
     const requestSignature = request.body.signature
     if (signature && (!requestSignature || signature !== requestSignature)) { console.log(`Provided signature '${requestSignature || "NULL"}' does not match the known API signature.`); return response.sendStatus(403).end() }
     const questions = request.body.checkout_questions
