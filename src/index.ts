@@ -17,12 +17,14 @@ const PARCEL_PUBLIC_API_BASE_URL = "https://papi.parcelroblox.com/"
 const PARCEL_API_BASE_URL = "https://api.parcelroblox.com/"
 const ROBLOX_USERS_API_BASE_URL = "https://users.roblox.com/"
 
-const signature = PAYHIP_API_KEY ? generateHash(PAYHIP_API_KEY, 'sha256', 'binary') : null
+const signature = PAYHIP_API_KEY ? generateHash(PAYHIP_API_KEY, 'sha256', 'hex') : null
 const app = express()
 
 function generateHash(string: string, algorithm?: string, encoding?: BinaryToTextEncoding): string {
     return createHash(algorithm || 'sha256').update(string).digest(encoding || 'base64')
 }
+
+console.log(generateHash("e8f4d62eeb37dab17044dc320747d73ab80575ca", 'sha256', 'hex'))
 
 function getUserId(username: string): Promise<number | undefined> {
     return new Promise(resolve => fetch(ROBLOX_USERS_API_BASE_URL + `/v1/usernames/users`, {
